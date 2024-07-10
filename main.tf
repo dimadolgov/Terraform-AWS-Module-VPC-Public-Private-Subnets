@@ -1,3 +1,4 @@
+
 ######################## Variables ########################
 variable "project_name" {
   default = "default"
@@ -102,7 +103,7 @@ resource "aws_route_table_association" "private_association" {
 }
 
 ######################## NAT + Gateway ########################
-# Create Elastic IPs for NAT Gateways in public subnets
+# Create Elastic IPs for NAT Gateways in private subnets
 resource "aws_eip" "nat" {
   count  = length(var.private_subnet_cidr)
   domain = "vpc"
