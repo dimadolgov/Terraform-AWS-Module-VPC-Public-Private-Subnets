@@ -65,12 +65,10 @@ resource "aws_route_table" "route_tables_public" {
 
 # associate route tables with public subnets
 resource "aws_route_table_association" "public_association" {
-  count          = length(var.private_subnet_cidr)
+  count          = length(var.public_subnet_cidr)
   route_table_id = aws_route_table.route_tables_public.id
   subnet_id      = element(aws_subnet.public_subnet[*].id, count.index)
-
 }
-
 
 ######################## Private Subnets ########################
 # create private subnets
@@ -98,13 +96,13 @@ resource "aws_route_table" "route_tables_private" {
 
 # associate route tables with private subnets
 resource "aws_route_table_association" "private_association" {
-  count          = length(aws_subnet.private_subnet[*].id)
+  count          = length(var.private_subnet_cidr)
   route_table_id = aws_route_table.route_tables_private[count.index].id
   subnet_id      = aws_subnet.private_subnet[count.index].id
 }
 
 ######################## NAT + Gateway ########################
-# Create Elastic IPs for NAT Gateways in private subnets
+# Create Elastic IPs for NAT Gateways in public subnets
 resource "aws_eip" "nat" {
   count  = length(var.private_subnet_cidr)
   domain = "vpc"
@@ -115,7 +113,7 @@ resource "aws_eip" "nat" {
 
 # Create NAT Gateways in public subnets and associate with Elastic IPs
 resource "aws_nat_gateway" "nat" {
-  count         = 0 #length(var.private_subnet_cidr)
+  count         = length(var.private_subnet_cidr)
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = element(aws_subnet.public_subnet[*].id, count.index)
   tags = {
